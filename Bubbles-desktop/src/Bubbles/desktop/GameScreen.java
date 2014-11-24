@@ -33,12 +33,12 @@ public class GameScreen implements Screen {
 		this.game = gam;
  
 		// load the images for the droplet and the bucket, 64x64 pixels each
-		dropImage = new Texture(Gdx.files.internal("droplet.png"));
-		bucketImage = new Texture(Gdx.files.internal("bucket.png"));
+		dropImage = new Texture(Gdx.files.internal("assets/droplet.png"));
+		bucketImage = new Texture(Gdx.files.internal("assets/bucket.png"));
  
 		// load the drop sound effect and the rain background "music"
-		dropSound = Gdx.audio.newSound(Gdx.files.internal("drop.wav"));
-		rainMusic = Gdx.audio.newMusic(Gdx.files.internal("rain.mp3"));
+		dropSound = Gdx.audio.newSound(Gdx.files.internal("assets/drop.wav"));
+		rainMusic = Gdx.audio.newMusic(Gdx.files.internal("assets/rain.mp3"));
 		rainMusic.setLooping(true);
  
 		// create the camera and the SpriteBatch
