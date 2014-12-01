@@ -71,7 +71,6 @@ public class DrawSurfaceScene extends AbstractScene {
 //		this.stepDistance = 5.5f;
 		this.lastBrushColor = brushColor;
 		
-		
 		this.cursorToLastDrawnPoint = new HashMap<InputCursor, Vector3D>();
 		
 		this.getCanvas().addInputListener(new IMTInputEventListener() {
@@ -86,8 +85,9 @@ public class DrawSurfaceScene extends AbstractScene {
 						// If there are two on the screen, store the last brush color
 						// and paint with white. We also increase brush scale
 						if (count == 2) {
-							System.out.println("There are 2 fingers on the screen");
-							lastBrushColor = brushColor;
+							if (!brushColor.equals(new MTColor(255,255,255))){
+								lastBrushColor = brushColor;
+							}
 							brushColor = new MTColor(255,255,255);
 							brushScale = 3.0f;
 							if (drawShape != null){
@@ -95,6 +95,18 @@ public class DrawSurfaceScene extends AbstractScene {
 								drawShape.setStrokeColor(brushColor);
 							}
 						}
+						else if (count == 3){
+							if (!brushColor.equals(new MTColor(255,255,255))){
+								lastBrushColor = brushColor;
+							}
+							brushColor = new MTColor(255,255,255);
+							brushScale = 300.0f;
+							if (drawShape != null){
+								drawShape.setFillColor(brushColor);
+								drawShape.setStrokeColor(brushColor);
+							}
+						}
+
 						// If there are more or less than 2 fingers, go back to drawing
 						else {
 							brushColor = lastBrushColor;
@@ -104,8 +116,7 @@ public class DrawSurfaceScene extends AbstractScene {
 								drawShape.setStrokeColor(brushColor);
 							}
 						}
-//						System.out.println(count);
-//						System.out.println("EnterIndex: " + c.getId() + " X: " + c.getPosition().x + " Y: " + c.getPosition().y);
+
 					}
 					
 					if (posEvt.getId() != AbstractCursorInputEvt.INPUT_ENDED){
@@ -198,8 +209,10 @@ public class DrawSurfaceScene extends AbstractScene {
 						// If there are two on the screen, store the last brush color
 						// and paint with white. We also increase brush scale
 						if (count == 2) {
-							System.out.println("There are 2 fingers on the screen");
-							lastBrushColor = brushColor;
+							if (!brushColor.equals(new MTColor(255,255,255))){
+								lastBrushColor = brushColor;
+							}
+							
 							brushColor = new MTColor(255,255,255);
 							brushScale = 3.0f;
 							if (drawShape != null){
@@ -207,6 +220,19 @@ public class DrawSurfaceScene extends AbstractScene {
 								drawShape.setStrokeColor(brushColor);
 							}
 						}
+						
+						else if (count == 3){
+							if (!brushColor.equals(new MTColor(255,255,255))){
+								lastBrushColor = brushColor;
+							}
+							brushColor = new MTColor(255,255,255);
+							brushScale = 300.0f;
+							if (drawShape != null){
+								drawShape.setFillColor(brushColor);
+								drawShape.setStrokeColor(brushColor);
+							}
+						}
+
 						// If there are more or less than 2 fingers, go back to drawing
 						else {
 							brushColor = lastBrushColor;
