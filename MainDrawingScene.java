@@ -1,10 +1,15 @@
 package advanced.drawing;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import org.mt4j.AbstractMTApplication;
+import org.mt4j.MTApplication;
+import org.mt4j.components.MTComponent;
 import org.mt4j.components.TransformSpace;
+import org.mt4j.components.visibleComponents.font.FontManager;
+import org.mt4j.components.visibleComponents.font.IFont;
 import org.mt4j.components.visibleComponents.shapes.MTEllipse;
 import org.mt4j.components.visibleComponents.shapes.MTPolygon;
 import org.mt4j.components.visibleComponents.shapes.MTRectangle;
@@ -12,12 +17,17 @@ import org.mt4j.components.visibleComponents.shapes.MTRoundRectangle;
 import org.mt4j.components.visibleComponents.widgets.MTColorPicker;
 import org.mt4j.components.visibleComponents.widgets.MTSceneTexture;
 import org.mt4j.components.visibleComponents.widgets.MTSlider;
+import org.mt4j.components.visibleComponents.widgets.MTTextArea;
 import org.mt4j.components.visibleComponents.widgets.buttons.MTImageButton;
+import org.mt4j.input.gestureAction.DefaultDragAction;
+import org.mt4j.input.gestureAction.DefaultRotateAction;
+import org.mt4j.input.gestureAction.DefaultScaleAction;
 import org.mt4j.input.inputProcessors.IGestureEventListener;
 import org.mt4j.input.inputProcessors.MTGestureEvent;
 import org.mt4j.input.inputProcessors.componentProcessors.dragProcessor.DragProcessor;
+import org.mt4j.input.inputProcessors.componentProcessors.rotateProcessor.RotateProcessor;
+import org.mt4j.input.inputProcessors.componentProcessors.scaleProcessor.ScaleProcessor;
 import org.mt4j.input.inputProcessors.componentProcessors.tapProcessor.TapEvent;
-import org.mt4j.input.inputProcessors.componentProcessors.tapProcessor.TapProcessor;
 import org.mt4j.input.inputProcessors.globalProcessors.CursorTracer;
 import org.mt4j.sceneManagement.AbstractScene;
 import org.mt4j.sceneManagement.IPreDrawAction;
@@ -30,17 +40,26 @@ import org.mt4j.util.opengl.GLFBO;
 import processing.core.PImage;
 
 public class MainDrawingScene extends AbstractScene {
-	private AbstractMTApplication pa;
+	private MTApplication pa;
 	private MTRectangle textureBrush;
 	private MTEllipse pencilBrush;
 	private DrawSurfaceScene drawingScene;
+	private MTApplication app;
+
+	final MTColor textAreaColor = new MTColor(50,50,50,255);
+
+
+	float verticalPad = 53;
 	
 //	private String imagesPath = System.getProperty("user.dir")+File.separator + "examples"+  File.separator +"advanced"+ File.separator + File.separator +"drawing"+ File.separator + File.separator +"data"+ File.separator +  File.separator +"images" + File.separator ;
-	private String imagesPath = "advanced" + AbstractMTApplication.separator + "drawing" + AbstractMTApplication.separator + "data" + AbstractMTApplication.separator + "images" + AbstractMTApplication.separator;
+	private String imagesPath = "advanced" + MTApplication.separator + "drawing" + MTApplication.separator + "data" + MTApplication.separator + "images" + MTApplication.separator;
 
-	public MainDrawingScene(AbstractMTApplication mtApplication, String name) {
+	public MainDrawingScene(MTApplication mtApplication, String name) {
 		super(mtApplication, name);
 		this.pa = mtApplication;
+		this.app = mtApplication;
+		MTColor white = new MTColor(0,0,0);
+		IFont font = FontManager.getInstance().createFont(app, "arial.ttf", 35, white);
 		
 		if (!(MT4jSettings.getInstance().isOpenGlMode() && GLFBO.isSupported(pa))){
 			System.err.println("Drawing example can only be run in OpenGL mode on a gfx card supporting the GL_EXT_framebuffer_object extension!");
@@ -89,18 +108,20 @@ public class MainDrawingScene extends AbstractScene {
         MTImageButton b = new MTImageButton(pa, eraser);
         b.setNoStroke(true);
         b.translate(new Vector3D(-50,0,0));
-        b.addGestureListener(TapProcessor.class, new IGestureEventListener() {
-			public boolean processGestureEvent(MTGestureEvent ge) {
-				TapEvent te = (TapEvent)ge;
-				if (te.isTapped()){
+        b.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent ae) {
+				switch (ae.getID()) {
+				case TapEvent.TAPPED:{
 //					//As we are messing with opengl here, we make sure it happens in the rendering thread
 					pa.invokeLater(new Runnable() {
 						public void run() {
 							sceneTexture.getFbo().clear(true, 255, 255, 255, 0, true);						
 						}
 					});
+				}break;
+				default:
+					break;
 				}
-				return true;
 			}
         });
         frame.addChild(b);
@@ -112,6 +133,13 @@ public class MainDrawingScene extends AbstractScene {
         penButton.translate(new Vector3D(-50f, 65,0));
         penButton.setNoStroke(true);
         penButton.setStrokeColor(new MTColor(0,0,0));
+
+		PImage rectangleIcon = pa.loadImage(imagesPath + "rectangle.png");
+		final MTImageButton rectangleButton = new MTImageButton(pa, rectangleIcon);
+		frame.addChild(rectangleButton);
+		rectangleButton.translate(new Vector3D(-50f, 560,0));
+		rectangleButton.setNoStroke(true);
+		rectangleButton.setStrokeColor(new MTColor(0,0,0));
         
         //Texture brush selector button
         PImage brushIcon = pa.loadImage(imagesPath + "paintbrush.png");
@@ -119,29 +147,52 @@ public class MainDrawingScene extends AbstractScene {
         frame.addChild(brushButton);
         brushButton.translate(new Vector3D(-50f, 130,0));
         brushButton.setStrokeColor(new MTColor(0,0,0));
-        brushButton.addGestureListener(TapProcessor.class, new IGestureEventListener() {
-			public boolean processGestureEvent(MTGestureEvent ge) {
-				TapEvent te = (TapEvent)ge;
-				if (te.isTapped()){
+        brushButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent ae) {
+				switch (ae.getID()) {
+				case TapEvent.TAPPED:{
 					drawingScene.setBrush(textureBrush);
 					brushButton.setNoStroke(false);
 					penButton.setNoStroke(true);
+					rectangleButton.setNoStroke(true);
+				}break;
+				default:
+					break;
 				}
-				return true;
 			}
         });
+
+
         
-        penButton.addGestureListener(TapProcessor.class, new IGestureEventListener() {
-			public boolean processGestureEvent(MTGestureEvent ge) {
-				TapEvent te = (TapEvent)ge;
-				if (te.isTapped()){
+        penButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent ae) {
+				switch (ae.getID()) {
+				case TapEvent.TAPPED:{
 					drawingScene.setBrush(pencilBrush);
 					penButton.setNoStroke(false);
 					brushButton.setNoStroke(true);
+					rectangleButton.setNoStroke(true);
+				}break;
+				default:
+					break;
 				}
-				return true;
 			}
         });
+
+		rectangleButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent ae) {
+				switch (ae.getID()) {
+					case TapEvent.TAPPED:{
+						setRectangle();
+						penButton.setNoStroke(true);
+						brushButton.setNoStroke(true);
+						rectangleButton.setNoStroke(false);
+					}break;
+					default:
+						break;
+				}
+			}
+		});
         
         //Save to file button
         PImage floppyIcon = pa.loadImage(imagesPath + "floppy.png");
@@ -149,10 +200,10 @@ public class MainDrawingScene extends AbstractScene {
         frame.addChild(floppyButton);
         floppyButton.translate(new Vector3D(-50f, 260,0));
         floppyButton.setNoStroke(true);
-        floppyButton.addGestureListener(TapProcessor.class, new IGestureEventListener() {
-			public boolean processGestureEvent(MTGestureEvent ge) {
-				TapEvent te = (TapEvent)ge;
-				if (te.isTapped()){
+        floppyButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent ae) {
+				switch (ae.getID()) {
+				case TapEvent.TAPPED:{
 //					pa.invokeLater(new Runnable() {
 //						public void run() {
 //							drawingScene.getCanvas().drawAndUpdateCanvas(pa.g, 0);
@@ -169,8 +220,10 @@ public class MainDrawingScene extends AbstractScene {
 							return false;
 						}
 					});
+				}break;
+				default:
+					break;
 				}
-				return true;
 			}
         });
         
@@ -201,24 +254,27 @@ public class MainDrawingScene extends AbstractScene {
         frame.addChild(colPickButton);
         colPickButton.translate(new Vector3D(-50f, 195,0));
         colPickButton.setNoStroke(true);
-        colPickButton.addGestureListener(TapProcessor.class, new IGestureEventListener() {
-			public boolean processGestureEvent(MTGestureEvent ge) {
-				TapEvent te = (TapEvent)ge;
-				if (te.isTapped()){
+        colPickButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent ae) {
+				switch (ae.getID()) {
+				case TapEvent.TAPPED:{
 					if (colorWidget.isVisible()){
 						colorWidget.setVisible(false);
 					}else{
 						colorWidget.setVisible(true);
 						colorWidget.sendToFront();
 					}				
+				}break;
+				default:
+					break;
 				}
-				return true;
 			}
         });
         
         //Add a slider to set the brush width
+		drawingScene.setBrushScale(1.5f);
         MTSlider slider = new MTSlider(pa, 0, 0, 200, 38, 0.05f, 2.0f);
-        slider.setValue(1.0f);
+        slider.setValue(1.5f);
         frame.addChild(slider);
         slider.rotateZ(new Vector3D(), 90, TransformSpace.LOCAL);
         slider.translate(new Vector3D(-7, 325));
@@ -246,6 +302,10 @@ public class MainDrawingScene extends AbstractScene {
         p.setPickable(false);
         slider.getOuterShape().addChild(p);
         slider.getKnob().sendToFront();
+
+
+
+
         
 	}
 
@@ -260,5 +320,34 @@ public class MainDrawingScene extends AbstractScene {
 			drawingScene.destroy(); //Destroy the scene manually since it isnt destroyed in the MTSceneTexture atm!
 		}
 		return destroyed;
+	}
+
+	private void clearAllGestures(MTComponent comp){
+		comp.unregisterAllInputProcessors();
+		comp.removeAllGestureEventListeners();
+	}
+
+	private void setRectangle(){
+
+
+		MTColor white = new MTColor(255,255,255);
+		IFont font = FontManager.getInstance().createFont(app, "arial.ttf", 100, white);
+
+		MTTextArea dragRotScale = new MTTextArea(app, font);
+		dragRotScale.setFillColor(textAreaColor);
+		dragRotScale.setStrokeColor(textAreaColor);
+		dragRotScale.setText("Moving with two fingers");
+		this.clearAllGestures(dragRotScale);
+		dragRotScale.registerInputProcessor(new ScaleProcessor(app));
+		dragRotScale.addGestureListener(ScaleProcessor.class, new DefaultScaleAction());
+		dragRotScale.registerInputProcessor(new RotateProcessor(app));
+		dragRotScale.addGestureListener(RotateProcessor.class, new DefaultRotateAction());
+		dragRotScale.registerInputProcessor(new DragProcessor(app));
+		dragRotScale.addGestureListener(DragProcessor.class, new DefaultDragAction());
+		this.getCanvas().addChild(dragRotScale);
+		dragRotScale.setAnchor(MTRectangle.PositionAnchor.UPPER_LEFT);
+		dragRotScale.setPositionGlobal(new Vector3D(250,6*verticalPad,0));
+
+
 	}
 }
