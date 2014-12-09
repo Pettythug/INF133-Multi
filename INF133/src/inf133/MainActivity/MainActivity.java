@@ -1,5 +1,6 @@
 package inf133.MainActivity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.AssetFileDescriptor;
 import android.hardware.Sensor;
@@ -26,7 +27,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private static final int SENSOR_DELAY = 500 * 5000; // 500ms
     private static final int FROM_RADS_TO_DEGS = -57;
-    private AssetFileDescriptor afd;
+    private AssetFileDescriptor afdAdara;
+    private AssetFileDescriptor afdAlya;
+    private AssetFileDescriptor afdArcturus;
+    private AssetFileDescriptor afdCapella;
+    private AssetFileDescriptor afdHojus;
+    private AssetFileDescriptor afdSyrma;
 
 
     @Override
@@ -42,8 +48,12 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
 
         mp = new MediaPlayer();
-        afd = getApplicationContext().getResources().openRawResourceFd(R.raw.a);
-
+        afdAdara = getApplicationContext().getResources().openRawResourceFd(R.raw.adara);
+        afdAlya = getApplicationContext().getResources().openRawResourceFd(R.raw.alya);
+        afdArcturus = getApplicationContext().getResources().openRawResourceFd(R.raw.arcturus);
+        afdCapella = getApplicationContext().getResources().openRawResourceFd(R.raw.capella);
+        afdHojus = getApplicationContext().getResources().openRawResourceFd(R.raw.hojus);
+        afdSyrma = getApplicationContext().getResources().openRawResourceFd(R.raw.syrma);
     }
 
     @Override
@@ -58,7 +68,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                 float[] truncatedRotationVector = new float[4];
                 System.arraycopy(event.values, 0, truncatedRotationVector, 0, 4);
                 update(truncatedRotationVector);
-                playAudio(afd);
+//                playAudio(afd); -- This could be redundant since you call playAudio in
+//				  update
             } else {
 
                 update(event.values);
@@ -90,7 +101,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
     }
 
-    private void update(float[] vectors) {
+    @SuppressLint("NewApi") private void update(float[] vectors) {
         float[] rotationMatrix = new float[9];
         SensorManager.getRotationMatrixFromVector(rotationMatrix, vectors);
         int worldAxisX = SensorManager.AXIS_X;
@@ -111,23 +122,17 @@ public class MainActivity extends Activity implements SensorEventListener {
         float yaw = orientation[0] * FROM_RADS_TO_DEGS;
 
         if (pitch < -60.0 && pitch > -90.0) {
-            afd = getApplicationContext().getResources().openRawResourceFd(R.raw.a);
-            playAudio(afd);
+            playAudio(afdAdara);
         } else if (pitch > 60.0 && pitch < 90.0) {
-            afd = getApplicationContext().getResources().openRawResourceFd(R.raw.b);
-            playAudio(afd);
+            playAudio(afdAlya);
         } else if (roll > 75.0 && roll < 105.0) {
-            afd = getApplicationContext().getResources().openRawResourceFd(R.raw.c);
-            playAudio(afd);
+            playAudio(afdArcturus);
         } else if (roll < -75.0 && roll > -105.0) {
-            afd = getApplicationContext().getResources().openRawResourceFd(R.raw.d);
-            playAudio(afd);
+            playAudio(afdCapella);
         } else if (roll < 15.0 && roll > -15.0) {
-            afd = getApplicationContext().getResources().openRawResourceFd(R.raw.e);
-            playAudio(afd);
+            playAudio(afdHojus);
         } else if (roll > 165.0 && roll < 190.0) {
-            afd = getApplicationContext().getResources().openRawResourceFd(R.raw.f);
-            playAudio(afd);
+            playAudio(afdSyrma);
         }
 
         ((TextView) findViewById(R.id.pitch)).setText("For sitting flat on the face or back: " + pitch);
